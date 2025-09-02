@@ -12,16 +12,13 @@
 }
 
 .list {
-    width: 320px;
+    width: 220px;
     padding: 10px;
     display: flex;
     text-align: center;
-    white-space: wrap;
+    flex-direction: column;
+    gap: 10px;
     border-radius: 15px;
     background-color: rgb(244, 244, 244);
     margin-top: 20px;
-}
-
-.span {
-    
 }
