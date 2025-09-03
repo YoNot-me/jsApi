@@ -1,52 +1,75 @@
-// const url = 'https://rickandmortyapi.com/api/character'; // присваивает url ссылку
-// const newSpan = document.createElement('span'); // создает спан
 
-// fetch(url)
-//   .then(response => response.json()) //ответ от api преобразует в .json
-//   .then(({ results }) => { //чет там деконструирует (({results}))
-//     const container = document.getElementById ('container'); // присваивает поиск контейнера в переменную 
-//     const item = results[0]; // присваивает переменной итем строку 0 в дата
-//     newSpan.textContent = `Created: ${item.created}, Episode: ${item.episode}, Gender: ${item.gender}, Id: ${item.id}}`; // перечисление и вставка из апи
-//     container.appendChild(newSpan); //апендид в контейнер спан
-//     })
+const api = 'https://rickandmortyapi.com/api/episode';
+const MAX_PAGES = Infinity;
 
-// newSpan.className = 'span';
+async function getAllPages() {
+    const pages = [];
+    let url = api;
+    let pageCount = 0;
 
-//______________________________________выглядит не красиво!______________________________________//
+    while (url && pageCount < MAX_PAGES) {
+        const res = await fetch(url);
+        const data = await res.json();
+        pages.push(data.results);
+        url = data.info.next;
+        pageCount++;
+    }
+    
+    return pages;
+    
+}
 
-const url = 'https://rickandmortyapi.com/api/character';
-const newSpan = document.createElement('span');
+function CardItems(item) {
+  const characters = Array.isArray (item.characters) ? item.characters.length: 0;
+  const createdDate = new Date (item.created).toLocaleDateString('ru-Ru');
+  const charactersList = Array.isArray(item.characters) 
+  ? item.characters.slice(0, 3).join(', ') + (item.characters.length > 3 ? ' ...' : '')
+  : '';
+  
+  const lines = [
+    `AirDate: ${item.air_date}`,
+    `Characters: ${charactersList}`,
+    `Episode: ${item.episode}`,
+    `Id: ${item.id}`,
+    `Name: ${item.name}`,
+    `Url: ${item.url}` //тут все записано в столбик, чтобы были разные спаны
+  ];
 
-fetch(url)
-  .then(response => response.json())
-  .then(({ results }) => {
+  const card = document.createElement ('div')
+  card.className = 'card';
+
+  lines.forEach (text => {
+    const span = document.createElement ('span');
+    span.textContent = text;
+    span.className = 'line';
+    card.appendChild (span);
+  });
+
+  return card;
+}
+
+  (async () => {
     const container = document.getElementById ('container');
-    const item = results[0]; //первую строчку берет (Рик)
-    const episodesCount = item.episode.length; // делает цирфу из перечисленных эпизодов
-    const createdDate = new Date(item.created).toLocaleDateString('ru-RU'); //форматирует дату
+    container.innerHTML = '';
 
-    const lines = [
-      `Имя: ${item.name}`,
-      `Статус: ${item.status}`,
-      `Пол: ${item.gender}`,
-      `Создан: ${createdDate}`,
-      `Эпизодов: ${episodesCount}`,
-      `ID: ${item.id}` //тут все записано в столбик, чтобы были переносы с варп в ксс
-    ];
+    const pages = await getAllPages();
 
-    lines.forEach (text => {
-      const span = document.createElement('span');
-      span.textContent = text;
-      span.style.display = 'flex';
-      span.style.justifyContent = 'center';
-      span.style.alignItems = 'center';
-      span.style.height = '25px';
-      span.style.backgroundColor = 'white';
-      span.style.borderRadius = '10px';
-      container.appendChild (span);
+    pages.forEach ((pageItems, idx) => {
+      const section = document.createElement ('section');
+      section.className = 'block';
+
+      const title = document.createElement ('h2');
+      title.className = 'name';
+      title.textContent = `API ${idx + 1}`;
+      section.appendChild (title);
+
+      const grid = document.createElement ('div');
+      grid.className = 'grid';
+
+      pageItems.forEach (item => grid.appendChild(CardItems(item)));
+
+      section.appendChild (grid);
+      container.appendChild (section);
     });
-    })
+})().catch(console.error);
 
-newSpan.className = 'span';
-
-//______________________________________лучше, но не то______________________________________//
